@@ -24,7 +24,7 @@ jobs:
       - run: npm run test
   analyze:
     docker:
-      - image:  circleci/nodes:13.8.0
+      - image:  circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
