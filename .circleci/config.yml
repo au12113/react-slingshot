@@ -16,7 +16,7 @@ jobs:
           name: generate inventory
           command: |
             aws cloudformation list-exports \
-              --query "Exports[?Name==\'Udacity-PublicIp\'].Value" \
+              --query "Exports[?Name=='Udacity-PublicIp'].Value" \
               --no-paginate
 
   run_ansible:
