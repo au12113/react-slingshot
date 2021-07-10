@@ -1,0 +1,4 @@
+---
+  - name: Exercise for setting an EC2
+    hosts: all
+    user: ubuntu
