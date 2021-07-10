@@ -24,7 +24,7 @@ jobs:
           command: |
             echo '[all]' > inventory
             aws cloudformation list-exports \
-              --query "Exports[?Name=='Udacity-PublicIp'].Value" \
+              --query "Exports[?Name=='Udacity-PublicIp'].Value | [0]" \
               --no-paginate >> inventory
             cat inventory
 
