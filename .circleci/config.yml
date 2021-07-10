@@ -34,8 +34,16 @@ jobs:
           name: Configure server
           command: |
             ansible-playbook -i inventory.txt playbook.yml
+  
+  failed_on_purpose:
+    docker:
+      - image: ubuntu
+    steps:
+      - run: return 1
         
 workflows:
   my_workflow:
     jobs:
       - run_ansible
+      - failed_on_purpose:
+          requires: ['run_ansible']
