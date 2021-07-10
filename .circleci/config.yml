@@ -11,9 +11,33 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file template.yml \
-              --stack-name my-stack 
+              --stack-name my-stack
+      - run:
+          name: generate inventory
+          command: |
+            aws cloudformation list-exports \
+              --query "Exports[?Name==\'Udacity-PublicIp\'].Value" \
+              --no-paginate
+
+  run_ansible:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["2f:f4:27:a9:a8:ef:29:18:bb:b6:a4:8c:66:c3:8f:2d"]
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
+      - run:
+          name: Comfigure server
+          command: |
+            ansible-playbook -i inventory.txt playbook.yml
         
 workflows:
   my_workflow:
     jobs:
       - create_infrastructure
+      - run_ansible:
+          requires: ["create_infrastructure"]
