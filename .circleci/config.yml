@@ -25,7 +25,7 @@ jobs:
             echo '[all]' > inventory
             aws cloudformation list-exports \
               --query "Exports[?Name=='Udacity-PublicIp'].Value" \
-              --no-paginate --output >> inventory
+              --no-paginate >> inventory
 
   run_ansible:
     docker:
