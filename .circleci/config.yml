@@ -17,7 +17,7 @@ jobs:
           command: |
             aws cloudformation list-exports \
               --query "Exports[?Name=='Udacity-PublicIp'].Value" \
-              --no-paginate
+              --no-paginate --output inventory
 
   run_ansible:
     docker:
@@ -31,13 +31,11 @@ jobs:
           command: |
             apk add --update ansible
       - run:
-          name: Comfigure server
+          name: Configure server
           command: |
             ansible-playbook -i inventory.txt playbook.yml
         
 workflows:
   my_workflow:
     jobs:
-      - create_infrastructure
-      - run_ansible:
-          requires: ["create_infrastructure"]
+      - run_ansible
