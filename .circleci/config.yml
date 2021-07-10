@@ -1,5 +1,12 @@
 version: 2.1
 
+commands:
+  destroy_environments:
+    steps:
+      - run:
+          name: Destroy environment
+          command: |
+            aws cloudformation delete-stack --stack-name my-stack
 jobs:
   create_infrastructure:
     docker:
@@ -15,9 +22,10 @@ jobs:
       - run:
           name: generate inventory
           command: |
+            echo '[all]' > inventory
             aws cloudformation list-exports \
               --query "Exports[?Name=='Udacity-PublicIp'].Value" \
-              --no-paginate --output inventory
+              --no-paginate --output >> inventory
 
   run_ansible:
     docker:
@@ -30,20 +38,29 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
+            pip install cloudformation-cli-python-plugin
       - run:
           name: Configure server
           command: |
-            ansible-playbook -i inventory.txt playbook.yml
+            cat inventory
+            ansible-playbook -i inventory playbook.yml
   
-  failed_on_purpose:
+  smoke_test:
     docker:
-      - image: ubuntu
+      - image: amazon/aws-cli
     steps:
-      - run: return 1
+      - run:
+          name: simulate error
+          command: |
+            return 1
+      - destroy_environment
+        when: on_fail
         
 workflows:
   my_workflow:
     jobs:
-      - run_ansible
-      - failed_on_purpose:
+      - create_infrastructure
+      - run_ansible:
+          requires: ['create_infrastructure']
+      - smoke_test:
           requires: ['run_ansible']
