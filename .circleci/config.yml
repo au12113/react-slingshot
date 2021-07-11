@@ -1,12 +1,13 @@
 version: 2.1
 
 commands:
-  destroy_environments:
+  destroy_environment:
     steps:
       - run:
           name: Destroy environment
           command: |
             aws cloudformation delete-stack --stack-name my-stack
+          when: on_fail
 jobs:
   create_infrastructure:
     docker:
@@ -55,8 +56,7 @@ jobs:
           name: simulate error
           command: |
             return 1
-      - destroy_environments
-        when: on_fail
+      - destroy_environment
         
 workflows:
   my_workflow:
