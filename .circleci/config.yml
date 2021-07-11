@@ -50,14 +50,13 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
+      - checkout
       - run:
           name: simulate error
           command: |
             return 1
-      - run:
-          command: |
-            destroy_environments
-          when: on_fail
+      - destroy_environments
+        when: on_fail
         
 workflows:
   my_workflow:
