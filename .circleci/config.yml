@@ -54,8 +54,10 @@ jobs:
           name: simulate error
           command: |
             return 1
+      - run:
+          command: |
             destroy_environments
-              when: on_fail
+          when: on_fail
         
 workflows:
   my_workflow:
