@@ -9,6 +9,18 @@ commands:
             aws cloudformation delete-stack --stack-name my-stack
           when: on_fail
 jobs:
+  get_last_deployment_id:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          command: |
+            aws cloudformation list-exports \
+              --query "Export[?Name==\`${PipelineID}\`].Value" \
+              --no-paginate --output old-pipeline.txt
+            curl -H "Content-Type: text/plain" -H "token: 302b3d21-bd30-4e72-8c9c-7b247c85ceac" \
+              --request PUT --data $(cat old-pipeline.txt) https://api.memstash.io/values/pipeline
   create_s3_bucket:
     docker:
       - image: amazon/aws-cli
@@ -16,26 +28,11 @@ jobs:
       - checkout
       - run:
           command: |
+            echo ${CIRCLE_WORKFLOW_ID}
             aws cloudformation deploy \
               --template-file bucket.yml \
-              --stack-name "udacity-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides PipelineID=${CIRCLE_WORKFLOW_ID:0:7} Name=${CIRCLE_WORKFLOW_ID}
-  get_last_deployment_id:
-    docker:
-      - image: amazon/aws-cli
-    working_directory: /tmp
-    steps:
-      - checkout
-      - run: mkdir -p workspace
-      - run:
-          command: |
-            aws cloudformation list-exports \
-              --query "Export[?Name==\`${PipelineID}\`].Value" \
-              --no-paginate > workspace/my-file.txt
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - my-filex.txt
+              --stack-name "udacity-${CIRCLE_WORKFLOW_ID}" \
+              --parameter-overrides Name=${CIRCLE_WORKFLOW_ID}
   promote_to_production:
     docker:
       - image: amazon/aws-cli
@@ -50,16 +47,14 @@ jobs:
   clean_up_old_front_end:
     docker:
       - image: amazon/aws-cli
-    working_directory: /tmp
     steps:
       - checkout
-      - attach_workspace:
-          at: /tmp/workspace
       - run:
           command: |
-            export OldPipelineID=$(cat /tmp/text)
-            aws s3 rm "s3://${OldPipelineID}" --recursive
-            aws cloudformation delete-stack --stack-name "udacity-${OldPipelineID:0:7}"
+            curl -H "token: 302b3d21-bd30-4e72-8c9c-7b247c85ceac" \
+              --request GET https://api.memstash.io/values/pipeline > old-pipeline.txt
+            aws s3 rm "s3://$(cat old-pipeline.txt)" --recursive
+            aws cloudformation delete-stack --stack-name "udacity-$(cat old-pipeline.txt)"
   create_infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -78,7 +73,6 @@ jobs:
             aws cloudformation list-exports \
               --query "Exports[?Name=='Udacity-PublicIp'].Value | [0]" \
               --no-paginate >> inventory
-            cat inventory
 
   run_ansible:
     docker:
@@ -112,11 +106,11 @@ jobs:
 workflows:
   my_workflow:
     jobs:
-      - create_s3_bucket
-      - get_last_deployment_id:
-          requires: ['create_s3_bucket']
+      - get_last_deployment_id
+      - create_s3_bucket:
+          require: ['get_last_deployment_id']
       - promote_to_production:
-          requires: ['get_last_deployment_id']
+          requires: ['create_s3_bucket']
       - clean_up_old_front_end:
           requires: ['promote_to_production']
       # - create_infrastructure

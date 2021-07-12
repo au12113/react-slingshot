@@ -22,3 +22,9 @@ Resources:
           Principal: '*'
           Action: s3:GetObject
           Resource: !Join ['',['arn:aws:s3:::', !Ref WebsiteBucket, /*]]
+
+Output:
+  PipelineID:
+    Value: !Sub ${PipelineID}
+    Export:
+      Name: PipelineID
