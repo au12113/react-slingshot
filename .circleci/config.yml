@@ -54,7 +54,6 @@ jobs:
           command: |
             curl -H "token: 302b3d21-bd30-4e72-8c9c-7b247c85ceac" \
               --request GET https://api.memstash.io/values/pipeline > old-pipeline.txt
-            aws s3 rm "s3://$(cat old-pipeline.txt)" --recursive
             aws cloudformation delete-stack --stack-name "udacity-$(cat old-pipeline.txt)"
   create_infrastructure:
     docker:
