@@ -28,12 +28,12 @@ jobs:
       - persist_to_workspace:
           root: /tmp
           paths:
-            - /txt
+            - /workspace
       - run:
           command: |
             aws cloudformation list-exports \
               --query "Export[?Name==\`${PipelineID}\`].Value" \
-              --no-paginate --output /tmp/text
+              --no-paginate --output /tmp/workspace/text
   promote_to_production:
     docker:
       - image: amazon/aws-cli
@@ -54,7 +54,7 @@ jobs:
           at: /tmp
       - run:
           command: |
-            export OldPipelineID=$(cat /tmp/text)
+            export OldPipelineID=$(cat /tmp/workspace/text)
             aws s3 rm "s3://${OldPipelineID}" --recursive
             aws cloudformation delete-stack --stack-name "udacity-${OldPipelineID:0:7}"
   create_infrastructure:
