@@ -18,9 +18,10 @@ jobs:
           command: |
             aws cloudformation list-exports \
               --query "Export[?Name==\`${PipelineID}\`].Value" \
-              --no-paginate --output old-pipeline.txt
-            curl -H "Content-Type: text/plain" -H "token: 302b3d21-bd30-4e72-8c9c-7b247c85ceac" \
-              --request PUT --data $(cat old-pipeline.txt) https://api.memstash.io/values/pipeline
+              --no-paginate > old-pipeline.txt
+      - run: |
+          curl -H "Content-Type: text/plain" -H "token: 302b3d21-bd30-4e72-8c9c-7b247c85ceac" \
+            --request PUT --data $(cat old-pipeline.txt) https://api.memstash.io/values/pipeline
   create_s3_bucket:
     docker:
       - image: amazon/aws-cli
