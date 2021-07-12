@@ -26,9 +26,9 @@ jobs:
     steps:
       - checkout
       - persist_to_workspace:
-          root: /tmp/txt
+          root: /tmp
           paths:
-            - /tmp/*
+            - /txt
       - run:
           command: |
             aws cloudformation list-exports \
