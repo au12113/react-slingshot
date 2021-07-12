@@ -33,7 +33,7 @@ jobs:
             aws cloudformation deploy \
               --template-file bucket.yml \
               --stack-name "udacity-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides Name=${CIRCLE_WORKFLOW_ID}
+              --parameter-overrides Name=${CIRCLE_WORKFLOW_ID} PipelineID=${CIRCLE_WORKFLOW_ID}
   promote_to_production:
     docker:
       - image: amazon/aws-cli
