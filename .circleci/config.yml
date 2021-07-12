@@ -28,7 +28,7 @@ jobs:
       - persist_to_workspace:
           root: /tmp
           paths:
-            - /workspace
+            - /*
       - run:
           command: |
             aws cloudformation list-exports \
@@ -51,7 +51,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp
+          at: /tmp/workspace
       - run:
           command: |
             export OldPipelineID=$(cat /tmp/workspace/text)
