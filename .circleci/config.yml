@@ -48,8 +48,8 @@ jobs:
       - checkout
       - run:
           command: |
-            aws s3 rm s3://${OldPipelineID} --recursive
-            aws cloudformation delete-stack --stack-name udacity-${PreviosPipelineID}
+            aws s3 rm "s3://${OldPipelineID}" --recursive
+            aws cloudformation delete-stack --stack-name "udacity-${PreviousPipelineID}"
   create_infrastructure:
     docker:
       - image: amazon/aws-cli
