@@ -31,4 +31,4 @@ Outputs:
   PipelineID:
     Value: !Sub ${PipelineID}
     Export:
-      Name: PipelineID
+      Name: CloudFront-PipelineID
