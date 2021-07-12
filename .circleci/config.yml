@@ -108,7 +108,7 @@ workflows:
     jobs:
       - get_last_deployment_id
       - create_s3_bucket:
-          require: ['get_last_deployment_id']
+          requires: ['get_last_deployment_id']
       - promote_to_production:
           requires: ['create_s3_bucket']
       - clean_up_old_front_end:
