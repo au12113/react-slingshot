@@ -6,7 +6,7 @@ Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketNName: !Sub $Name
+      BucketName: !Sub $Name
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
