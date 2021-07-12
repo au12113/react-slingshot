@@ -9,6 +9,47 @@ commands:
             aws cloudformation delete-stack --stack-name my-stack
           when: on_fail
 jobs:
+  create_s3_bucket:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          command: |
+            aws cloudformation deploy \
+              --template-file bucket.yml \
+              --stack-name ${CIRCLE_WORKFLOW_ID:0:7}
+              --parameter-overrides PipelineID=${CIRCLE_WORKFLOW_ID:0:7}
+  get_last_deployment_id:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+        command: |
+          aws cloudformation list-exports \
+            --query "EXport[?Name==\`PipelineID\`].Value" \
+            --no-paginate --output text
+  promote_to_production:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          command: |
+            aws cloudformation deploy \
+              --template-file cloudfront.yml \
+              --stack-name production-distro \
+              --parameter-overrides PipelineID=${CIRCLE_WORKFLOW_ID}
+  clean_up_old_front_end:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          command: |
+            aws s3 rm s3://${OldPipelineID} --recursive
+            aws cloudformation delete-stack --stack-name ${PreviosPipelineID}
   create_infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -61,8 +102,15 @@ jobs:
 workflows:
   my_workflow:
     jobs:
-      - create_infrastructure
+      - create_s3_bucket
+      - get_last_deployment_id:
+          requires: ['create_s3_bucket']
+      - promote_to_production:
+          requires: ['get_last_deployment_id']
+      - clean_up_old_front_end
+          requires: ['promote_to_production']
+      # - create_infrastructure
       # - run_ansible:
       #     requires: ['create_infrastructure']
-      - smoke_test:
-          requires: ['create_infrastructure']
+      # - smoke_test:
+      #     requires: ['create_infrastructure']
