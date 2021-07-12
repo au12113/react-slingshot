@@ -26,10 +26,10 @@ jobs:
     steps:
       - checkout
       - run:
-        command: |
-          aws cloudformation list-exports \
-            --query "EXport[?Name==\`PipelineID\`].Value" \
-            --no-paginate --output text
+          command: |
+            aws cloudformation list-exports \
+              --query "EXport[?Name==\`PipelineID\`].Value" \
+              --no-paginate --output text
   promote_to_production:
     docker:
       - image: amazon/aws-cli
@@ -107,7 +107,7 @@ workflows:
           requires: ['create_s3_bucket']
       - promote_to_production:
           requires: ['get_last_deployment_id']
-      - clean_up_old_front_end
+      - clean_up_old_front_end:
           requires: ['promote_to_production']
       # - create_infrastructure
       # - run_ansible:
